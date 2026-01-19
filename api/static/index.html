@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTM Intelligence • Job Search Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 900: '#0a0a0f', 800: '#12121a', 700: '#1a1a24', 600: '#22222e' },
+                        accent: { cyan: '#00d4ff', mint: '#00ffa3', coral: '#ff6b6b', gold: '#ffd93d', violet: '#a855f7' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Space Grotesk', sans-serif; }
+        code, .mono { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+        
+        /* Background */
+        body { 
+            background: #0a0a0f;
+            background-image: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 212, 255, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0, 255, 163, 0.08), transparent);
+        }
+        
+        /* Glassmorphism */
+        .glass { 
+            background: rgba(26, 26, 36, 0.7); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .glass-light { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Cards */
+        .card { 
+            background: linear-gradient(135deg, rgba(26,26,36,0.9) 0%, rgba(18,18,26,0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover { 
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(0, 212, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Gradient text */
+        .text-gradient { 
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffa3 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .text-gradient-warm { 
+            background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        
+        /* Buttons */
+        .btn-primary { 
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3ff 100%);
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { 
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 255, 163, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 255, 163, 0.2) 100%);
+        }
+        .btn-coral {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+        }
+        .btn-coral:hover {
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.4);
+        }
+        
+        /* Inputs */
+        .input-dark {
+            background: rgba(10, 10, 15, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.2s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15), 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+        .input-dark::placeholder { color: rgba(255,255,255,0.3); }
+        
+        /* Tags */
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .tag-cyan { background: rgba(0, 212, 255, 0.15); color: #00d4ff; border: 1px solid rgba(0, 212, 255, 0.3); }
+        .tag-mint { background: rgba(0, 255, 163, 0.15); color: #00ffa3; border: 1px solid rgba(0, 255, 163, 0.3); }
+        .tag-coral { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3); }
+        .tag-gold { background: rgba(255, 217, 61, 0.15); color: #ffd93d; border: 1px solid rgba(255, 217, 61, 0.3); }
+        .tag-violet { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .tag-gray { background: rgba(255, 255, 255, 0.05); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Tech pills */
+        .tech-pill { 
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 255, 163, 0.05) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+        .skill-pill {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .glow-pulse { animation: glowPulse 3s ease-in-out infinite; }
+        @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); } 50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.4); } }
+        
+        /* Stats counter */
+        .stat-box {
+            background: linear-gradient(180deg, rgba(0, 212, 255, 0.08) 0%, transparent 100%);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.5); }
+        
+        /* Line clamp */
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Tab pill active */
+        .tab-active { 
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 255, 163, 0.1) 100%);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div x-data="app()" x-init="init()" class="min-h-screen">
+        
+        <!-- Header -->
+        <header class="relative overflow-hidden">
+            <!-- Decorative elements -->
+            <div class="absolute inset-0 pointer-events-none">
+                <div class="absolute top-0 left-1/4 w-96 h-96 bg-accent-cyan/10 rounded-full blur-3xl"></div>
+                <div class="absolute top-0 right-1/4 w-72 h-72 bg-accent-mint/10 rounded-full blur-3xl"></div>
+            </div>
+            
+            <div class="relative max-w-7xl mx-auto px-6 py-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-mint flex items-center justify-center">
+                                <svg class="w-6 h-6 text-dark-900" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h1 class="text-3xl font-bold tracking-tight">
+                                <span class="text-white">GTM</span>
+                                <span class="text-gradient">Intelligence</span>
+                            </h1>
+                        </div>
+                        <p class="text-white/40 text-sm ml-13">Discover opportunities across top tech companies</p>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="flex gap-4">
+                        <div class="stat-box rounded-xl px-5 py-3 text-center">
+                            <div class="text-2xl font-bold text-gradient" x-text="stats?.total_jobs?.toLocaleString() || '—'"></div>
+                            <div class="text-[10px] text-white/40 uppercase tracking-widest mt-1">Jobs</div>
+                        </div>
+                        <div class="stat-box rounded-xl px-5 py-3 text-center">
+                            <div class="text-2xl font-bold text-gradient" x-text="stats?.total_companies?.toLocaleString() || '—'"></div>
+                            <div class="text-[10px] text-white/40 uppercase tracking-widest mt-1">Companies</div>
+                        </div>
+                        <div class="stat-box rounded-xl px-5 py-3 text-center">
+                            <div class="text-2xl font-bold text-gradient-warm">4</div>
+                            <div class="text-[10px] text-white/40 uppercase tracking-widest mt-1">Platforms</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-6 pb-12">
+            <!-- Main Card -->
+            <div class="glass rounded-2xl p-6 mb-8">
+                <!-- Navigation Tabs -->
+                <div class="flex gap-2 mb-6">
+                    <button @click="activeTab = 'search'" 
+                        :class="activeTab === 'search' ? 'tab-active' : 'text-white/50 hover:text-white/80 hover:bg-white/5'"
+                        class="px-5 py-2.5 rounded-xl font-medium transition-all border border-transparent flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Search
+                    </button>
+                    <button @click="activeTab = 'ai'" 
+                        :class="activeTab === 'ai' ? 'tab-active' : 'text-white/50 hover:text-white/80 hover:bg-white/5'"
+                        class="px-5 py-2.5 rounded-xl font-medium transition-all border border-transparent flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        AI Search
+                    </button>
+                    <button @click="activeTab = 'resume'" 
+                        :class="activeTab === 'resume' ? 'bg-gradient-to-r from-accent-coral/20 to-accent-gold/20 border-accent-coral/50 text-accent-coral' : 'text-white/50 hover:text-white/80 hover:bg-white/5'"
+                        class="px-5 py-2.5 rounded-xl font-medium transition-all border border-transparent flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Resume Match
+                    </button>
+                    <button @click="activeTab = 'companies'" 
+                        :class="activeTab === 'companies' ? 'tab-active' : 'text-white/50 hover:text-white/80 hover:bg-white/5'"
+                        class="px-5 py-2.5 rounded-xl font-medium transition-all border border-transparent flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        Companies
+                    </button>
+                </div>
+
+                <!-- Search Tab -->
+                <div x-show="activeTab === 'search'" class="space-y-4">
+                    <div class="flex gap-3">
+                        <div class="relative flex-1">
+                            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" x-model="filters.q" @keyup.enter="searchJobs()" 
+                                placeholder="Search jobs, skills, technologies..."
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl input-dark text-lg">
+                        </div>
+                        <div class="relative w-52">
+                            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <input type="text" x-model="filters.company" @keyup.enter="searchJobs()" 
+                                placeholder="Company"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl input-dark">
+                        </div>
+                        <button @click="searchJobs()" class="px-8 py-3.5 btn-primary rounded-xl font-semibold text-dark-900">
+                            Search
+                        </button>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="flex gap-3 flex-wrap">
+                        <select x-model="filters.department" @change="searchJobs()" class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                            <option value="">All Departments</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Product">Product</option>
+                            <option value="Design">Design</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="Customer Success">Customer Success</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Finance">Finance</option>
+                            <option value="HR">HR</option>
+                        </select>
+                        <select x-model="filters.seniority" @change="searchJobs()" class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                            <option value="">All Levels</option>
+                            <option value="Intern">Intern</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Mid">Mid</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Principal">Principal</option>
+                            <option value="Lead">Lead</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Director">Director</option>
+                            <option value="VP">VP</option>
+                        </select>
+                        <select x-model="filters.remote" @change="searchJobs()" class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                            <option value="">All Work Types</option>
+                            <option value="Remote">🌍 Remote</option>
+                            <option value="Hybrid">🏢 Hybrid</option>
+                            <option value="Onsite">📍 Onsite</option>
+                        </select>
+                        <button @click="clearFilters()" class="px-4 py-2.5 text-white/40 hover:text-white/70 transition-colors text-sm flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Search Tab -->
+                <div x-show="activeTab === 'ai'" class="space-y-4">
+                    <div class="flex gap-3">
+                        <div class="relative flex-1">
+                            <div class="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-mint flex items-center justify-center">
+                                <svg class="w-4 h-4 text-dark-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <input type="text" x-model="nlQuery" @keyup.enter="searchNL()" 
+                                placeholder="Ask in natural language... e.g. 'Senior Python engineers at fintech companies'"
+                                class="w-full pl-16 pr-4 py-4 rounded-xl input-dark text-lg">
+                        </div>
+                        <button @click="searchNL()" :disabled="loading"
+                            class="px-8 py-4 btn-primary rounded-xl font-semibold text-dark-900 disabled:opacity-50 flex items-center gap-2">
+                            <span x-show="!loading">Ask AI</span>
+                            <span x-show="loading" class="flex items-center gap-2">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                Processing
+                            </span>
+                        </button>
+                    </div>
+                    
+                    <!-- Quick prompts -->
+                    <div class="flex gap-2 flex-wrap items-center">
+                        <span class="text-white/30 text-sm">Try:</span>
+                        <button @click="nlQuery = 'Remote senior engineers with Python and salary above $200k'; $nextTick(() => searchNL())" 
+                            class="px-3 py-1.5 rounded-lg btn-secondary text-xs text-accent-cyan hover:text-white transition-colors">
+                            Remote $200k+ Python
+                        </button>
+                        <button @click="nlQuery = 'Staff and Principal roles at OpenAI, Anthropic, or Stripe'; $nextTick(() => searchNL())" 
+                            class="px-3 py-1.5 rounded-lg btn-secondary text-xs text-accent-cyan hover:text-white transition-colors">
+                            Staff+ at AI companies
+                        </button>
+                        <button @click="nlQuery = 'ML engineers in San Francisco or NYC paying over $180k'; $nextTick(() => searchNL())" 
+                            class="px-3 py-1.5 rounded-lg btn-secondary text-xs text-accent-cyan hover:text-white transition-colors">
+                            ML roles SF/NYC
+                        </button>
+                        <button @click="nlQuery = 'Sales and GTM roles with remote options'; $nextTick(() => searchNL())" 
+                            class="px-3 py-1.5 rounded-lg btn-secondary text-xs text-accent-cyan hover:text-white transition-colors">
+                            Remote GTM roles
+                        </button>
+                    </div>
+                    
+                    <!-- Generated SQL -->
+                    <div x-show="generatedSQL" class="p-4 glass-light rounded-xl">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-accent-mint animate-pulse"></div>
+                            <span class="text-xs text-white/40 uppercase tracking-wider">Generated Query</span>
+                        </div>
+                        <code class="text-xs text-accent-cyan/80 mono block overflow-x-auto" x-text="generatedSQL"></code>
+                    </div>
+                </div>
+
+                <!-- Resume Match Tab -->
+                <div x-show="activeTab === 'resume'" class="space-y-4">
+                    <div class="relative p-8 rounded-2xl overflow-hidden" style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 217, 61, 0.05) 100%); border: 1px dashed rgba(255, 107, 107, 0.3);">
+                        <!-- Decorative -->
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-accent-coral/10 rounded-full blur-3xl pointer-events-none"></div>
+                        
+                        <div class="relative">
+                            <div class="text-center mb-6">
+                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-coral to-accent-gold mb-4">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-white">AI Resume Matcher</h3>
+                                <p class="text-white/40 text-sm mt-1">Upload your resume and discover your best-fit opportunities</p>
+                            </div>
+                            
+                            <div class="space-y-4 max-w-2xl mx-auto">
+                                <!-- Upload area -->
+                                <label class="block cursor-pointer">
+                                    <div class="flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed transition-all"
+                                         :class="resumeFile ? 'border-accent-mint bg-accent-mint/10' : 'border-white/20 hover:border-accent-coral/50 bg-dark-800/50'">
+                                        <div x-show="!resumeFile" class="flex flex-col items-center">
+                                            <svg class="w-10 h-10 text-white/30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                            <p class="text-sm text-white/50"><span class="text-accent-coral font-medium">Click to upload</span> or drag and drop</p>
+                                            <p class="text-xs text-white/30 mt-1">PDF or TXT • Max 5MB</p>
+                                        </div>
+                                        <div x-show="resumeFile" class="flex items-center gap-3 text-accent-mint">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span class="font-medium" x-text="resumeFile?.name"></span>
+                                        </div>
+                                    </div>
+                                    <input type="file" class="hidden" accept=".pdf,.txt" @change="resumeFile = $event.target.files[0]">
+                                </label>
+                                
+                                <!-- Filters -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="text" x-model="resumeFilters.query" placeholder="Job title (optional)"
+                                        class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                                    <input type="text" x-model="resumeFilters.company" placeholder="Company (optional)"
+                                        class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                                    <select x-model="resumeFilters.department" class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                                        <option value="">Any Department</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Sales">Sales</option>
+                                        <option value="Product">Product</option>
+                                        <option value="Design">Design</option>
+                                        <option value="Data Science">Data Science</option>
+                                    </select>
+                                    <select x-model="resumeFilters.seniority" class="px-4 py-2.5 rounded-lg input-dark text-sm">
+                                        <option value="">Any Level</option>
+                                        <option value="Junior">Junior</option>
+                                        <option value="Mid">Mid</option>
+                                        <option value="Senior">Senior</option>
+                                        <option value="Staff">Staff</option>
+                                        <option value="Principal">Principal</option>
+                                    </select>
+                                </div>
+                                
+                                <button @click="matchResume()" :disabled="!resumeFile || resumeMatching"
+                                    class="w-full py-4 btn-coral rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+                                    <span x-show="!resumeMatching">
+                                        <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                        Find My Best Matches
+                                    </span>
+                                    <span x-show="resumeMatching" class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                        Analyzing your resume...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resume Match Results -->
+                    <div x-show="resumeMatches.length > 0" class="space-y-4 mt-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-accent-mint animate-pulse"></span>
+                                Your Top Matches
+                            </h3>
+                            <span class="text-sm text-white/40" x-text="resumeMatches.length + ' matches found'"></span>
+                        </div>
+                        
+                        <div class="grid gap-4">
+                            <template x-for="match in resumeMatches" :key="match.id">
+                                <div @click="selectedJob = match" class="card rounded-xl p-5 cursor-pointer fade-in border-l-4"
+                                     :class="match.match_score >= 80 ? 'border-l-accent-mint' : match.match_score >= 60 ? 'border-l-accent-gold' : 'border-l-white/20'">
+                                    <div class="flex gap-5">
+                                        <!-- Score -->
+                                        <div class="flex-shrink-0 w-20 h-20 rounded-xl flex flex-col items-center justify-center"
+                                             :class="match.match_score >= 80 ? 'bg-accent-mint/20' : match.match_score >= 60 ? 'bg-accent-gold/20' : 'bg-white/10'">
+                                            <div class="text-2xl font-bold" 
+                                                 :class="match.match_score >= 80 ? 'text-accent-mint' : match.match_score >= 60 ? 'text-accent-gold' : 'text-white/50'"
+                                                 x-text="match.match_score + '%'"></div>
+                                            <div class="text-[10px] uppercase tracking-wider text-white/40">Match</div>
+                                        </div>
+                                        
+                                        <!-- Content -->
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="font-semibold text-lg text-white truncate" x-text="match.title"></h4>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="text-accent-cyan font-medium" x-text="match.company"></span>
+                                                <span class="text-white/20">•</span>
+                                                <span class="text-white/40 text-sm" x-text="match.location || 'Location TBD'"></span>
+                                            </div>
+                                            
+                                            <p x-show="match.summary" class="text-white/50 text-sm mt-2 italic" x-text="'\"' + match.summary + '\"'"></p>
+                                            
+                                            <!-- Tags -->
+                                            <div class="flex gap-2 flex-wrap mt-3">
+                                                <span x-show="match.department" class="tag tag-mint" x-text="match.department"></span>
+                                                <span x-show="match.seniority" class="tag tag-cyan" x-text="match.seniority"></span>
+                                                <span x-show="match.remote_policy === 'Remote'" class="tag tag-violet">Remote</span>
+                                                <span x-show="match.salary_min || match.salary_max" class="tag tag-gold" x-text="'💰 ' + formatSalary(match.salary_min, match.salary_max, match.location)"></span>
+                                            </div>
+                                            
+                                            <!-- Skills -->
+                                            <div x-show="match.matching_skills?.length" class="mt-3 text-sm">
+                                                <span class="text-accent-mint">✓ Match:</span>
+                                                <span class="text-white/50" x-text="match.matching_skills?.slice(0,4).join(', ')"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Companies Tab -->
+                <div x-show="activeTab === 'companies'" class="space-y-4">
+                    <div class="flex gap-3">
+                        <div class="relative flex-1">
+                            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <input type="text" x-model="companySearch" @keyup.enter="searchCompanies()" 
+                                placeholder="Search companies..."
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl input-dark text-lg">
+                        </div>
+                        <button @click="searchCompanies()" class="px-8 py-3.5 btn-primary rounded-xl font-semibold text-dark-900">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Bar -->
+            <div x-show="activeTab !== 'resume'" class="flex items-center justify-between mb-6">
+                <div class="text-white/40 text-sm">
+                    <span class="text-white font-semibold" x-text="results.total?.toLocaleString() || 0"></span> results found
+                </div>
+                <div x-show="loading" class="flex items-center gap-2 text-accent-cyan text-sm">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Loading...
+                </div>
+            </div>
+
+            <!-- Job Cards -->
+            <div x-show="activeTab === 'search' || activeTab === 'ai'" class="grid gap-4">
+                <template x-for="job in results.jobs" :key="job.id">
+                    <div @click="selectedJob = job" class="card rounded-xl p-5 cursor-pointer fade-in">
+                        <div class="flex justify-between items-start gap-4">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-lg text-white truncate" x-text="job.title"></h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="font-medium text-accent-cyan" x-text="job.company"></span>
+                                    <span class="text-white/20">•</span>
+                                    <span class="text-white/40 text-sm" x-text="job.location || 'Location TBD'"></span>
+                                    <template x-if="job.experience_years">
+                                        <span class="text-white/30 text-sm">• <span x-text="job.experience_years"></span> yrs</span>
+                                    </template>
+                                </div>
+                                <div x-show="job.job_summary" class="text-sm text-white/40 mt-2 line-clamp-2" x-text="job.job_summary"></div>
+                            </div>
+                            <div class="flex gap-2 flex-shrink-0 flex-wrap justify-end">
+                                <span x-show="job.department" class="tag tag-mint" x-text="job.department"></span>
+                                <span x-show="job.seniority" class="tag tag-cyan" x-text="job.seniority"></span>
+                                <span x-show="job.remote_policy === 'Remote'" class="tag tag-violet">Remote</span>
+                            </div>
+                        </div>
+                        <!-- Tech Stack -->
+                        <div x-show="job.tech_stack?.length" class="flex gap-1.5 mt-4 flex-wrap">
+                            <template x-for="tech in (job.tech_stack || []).slice(0, 6)">
+                                <span class="px-2 py-1 tech-pill rounded text-xs font-medium" x-text="tech"></span>
+                            </template>
+                            <span x-show="job.tech_stack?.length > 6" class="px-2 py-1 text-xs text-white/30" x-text="'+' + (job.tech_stack.length - 6)"></span>
+                        </div>
+                        <!-- Skills -->
+                        <div x-show="job.skills?.length" class="flex gap-1.5 mt-2 flex-wrap">
+                            <template x-for="skill in (job.skills || []).slice(0, 5)">
+                                <span class="px-2 py-1 skill-pill rounded text-xs" x-text="skill"></span>
+                            </template>
+                        </div>
+                        <div x-show="job.salary_min || job.salary_max" class="mt-3 text-sm font-medium text-accent-gold flex items-center gap-1">
+                            <span>💰</span>
+                            <span x-text="formatSalary(job.salary_min, job.salary_max, job.location)"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Company Cards -->
+            <div x-show="activeTab === 'companies'" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <template x-for="company in results.companies" :key="company.company">
+                    <div @click="filters.company = company.company; activeTab = 'search'; searchJobs()" 
+                        class="card rounded-xl p-5 cursor-pointer fade-in text-center group">
+                        <div class="text-3xl font-bold text-gradient group-hover:scale-110 transition-transform" x-text="company.job_count"></div>
+                        <div class="font-semibold text-white mt-2 truncate" x-text="company.company"></div>
+                        <div class="text-xs text-white/30 uppercase tracking-wider mt-1" x-text="company.ats"></div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Empty State -->
+            <div x-show="!loading && results.total === 0 && activeTab !== 'resume'" class="text-center py-20">
+                <div class="text-6xl mb-4 opacity-20">🔍</div>
+                <div class="text-white/30">No results found</div>
+                <div class="text-white/20 text-sm mt-1">Try adjusting your search criteria</div>
+            </div>
+        </div>
+
+        <!-- Job Modal -->
+        <div x-show="selectedJob" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="selectedJob = null">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-dark-900/90 backdrop-blur-sm"></div>
+            
+            <!-- Modal -->
+            <div class="relative glass rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto fade-in" style="box-shadow: 0 0 100px rgba(0, 212, 255, 0.15);">
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white" x-text="selectedJob?.title"></h2>
+                            <div class="text-lg text-accent-cyan font-medium mt-1" x-text="selectedJob?.company"></div>
+                        </div>
+                        <button @click="selectedJob = null" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Job Summary -->
+                    <div x-show="selectedJob?.job_summary" class="mb-6 p-4 rounded-xl border-l-4 border-accent-cyan" style="background: linear-gradient(90deg, rgba(0, 212, 255, 0.1) 0%, transparent 100%);">
+                        <div class="text-xs text-accent-cyan uppercase font-semibold mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Summary
+                        </div>
+                        <div class="text-white/80 leading-relaxed" x-text="selectedJob?.job_summary"></div>
+                    </div>
+                    
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        <div class="p-4 rounded-xl glass-light">
+                            <div class="text-xs text-white/40 uppercase mb-1">Location</div>
+                            <div class="font-medium text-white" x-text="selectedJob?.location || '—'"></div>
+                        </div>
+                        <div class="p-4 rounded-xl glass-light">
+                            <div class="text-xs text-white/40 uppercase mb-1">Remote</div>
+                            <div class="font-medium text-white" x-text="selectedJob?.remote_policy || '—'"></div>
+                        </div>
+                        <div class="p-4 rounded-xl glass-light">
+                            <div class="text-xs text-white/40 uppercase mb-1">Department</div>
+                            <div class="font-medium text-white" x-text="selectedJob?.department || '—'"></div>
+                        </div>
+                        <div class="p-4 rounded-xl glass-light">
+                            <div class="text-xs text-white/40 uppercase mb-1">Level</div>
+                            <div class="font-medium text-white" x-text="selectedJob?.seniority || '—'"></div>
+                        </div>
+                    </div>
+
+                    <!-- Experience & Salary -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div x-show="selectedJob?.experience_years" class="p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(255, 217, 61, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%); border: 1px solid rgba(255, 217, 61, 0.2);">
+                            <div class="text-xs text-accent-gold uppercase mb-1">Experience</div>
+                            <div class="text-xl font-bold text-accent-gold"><span x-text="selectedJob?.experience_years"></span> years</div>
+                        </div>
+                        <div x-show="selectedJob?.salary_min || selectedJob?.salary_max" class="p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(0, 255, 163, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%); border: 1px solid rgba(0, 255, 163, 0.2);">
+                            <div class="text-xs text-accent-mint uppercase mb-1">Salary</div>
+                            <div class="text-xl font-bold text-accent-mint" x-text="formatSalary(selectedJob?.salary_min, selectedJob?.salary_max, selectedJob?.location)"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tech Stack -->
+                    <div x-show="selectedJob?.tech_stack?.length" class="mb-6">
+                        <div class="text-xs text-white/40 uppercase mb-3 flex items-center gap-2">
+                            <span>🛠️</span> Tech Stack
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="tech in selectedJob?.tech_stack || []">
+                                <span class="px-3 py-1.5 tech-pill rounded-lg text-sm font-medium" x-text="tech"></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div x-show="selectedJob?.skills?.length" class="mb-6">
+                        <div class="text-xs text-white/40 uppercase mb-3 flex items-center gap-2">
+                            <span>💡</span> Required Skills
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="skill in selectedJob?.skills || []">
+                                <span class="px-3 py-1.5 skill-pill rounded-lg text-sm" x-text="skill"></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Pain Points -->
+                    <div x-show="selectedJob?.pain_points?.length" class="mb-6">
+                        <div class="text-xs text-white/40 uppercase mb-3 flex items-center gap-2">
+                            <span>🎯</span> What You'll Solve
+                        </div>
+                        <ul class="space-y-2">
+                            <template x-for="point in selectedJob?.pain_points || []">
+                                <li class="flex items-start gap-3 text-white/70">
+                                    <span class="text-accent-mint mt-0.5">✓</span>
+                                    <span x-text="point"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+
+                    <!-- Apply Button -->
+                    <a x-bind:href="selectedJob ? selectedJob.url : '#'" target="_blank" rel="noopener"
+                        class="block w-full text-center py-4 btn-primary rounded-xl font-semibold text-dark-900 transition-all"
+                        x-show="selectedJob && selectedJob.url">
+                        View Original Posting →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                activeTab: 'search',
+                loading: false,
+                stats: null,
+                filters: { q: '', company: '', department: '', seniority: '', remote: '', tech: [] },
+                nlQuery: '',
+                generatedSQL: '',
+                companySearch: '',
+                results: { jobs: [], companies: [], total: 0 },
+                currentPage: 0,
+                selectedJob: null,
+                resumeFile: null,
+                resumeFilters: { query: '', company: '', department: '', seniority: '' },
+                resumeMatching: false,
+                resumeMatches: [],
+
+                async init() {
+                    await this.loadStats();
+                    await this.searchJobs();
+                },
+
+                async loadStats() {
+                    try {
+                        const res = await fetch('/api/stats');
+                        this.stats = await res.json();
+                    } catch (e) { console.error(e); }
+                },
+
+                async searchJobs() {
+                    this.loading = true;
+                    try {
+                        const params = new URLSearchParams();
+                        if (this.filters.q) params.append('q', this.filters.q);
+                        if (this.filters.company) params.append('company', this.filters.company);
+                        if (this.filters.department) params.append('department', this.filters.department);
+                        if (this.filters.seniority) params.append('seniority', this.filters.seniority);
+                        if (this.filters.remote) params.append('remote', this.filters.remote);
+                        params.append('limit', 10000);
+                        const res = await fetch('/api/jobs?' + params);
+                        this.results = await res.json();
+                    } catch (e) { console.error(e); }
+                    this.loading = false;
+                },
+
+                async searchNL() {
+                    if (!this.nlQuery.trim()) return;
+                    this.loading = true;
+                    this.generatedSQL = '';
+                    try {
+                        const res = await fetch('/api/search/nl?q=' + encodeURIComponent(this.nlQuery));
+                        const data = await res.json();
+                        this.results = { jobs: data.results, total: data.total };
+                        this.generatedSQL = data.sql;
+                    } catch (e) { console.error(e); }
+                    this.loading = false;
+                },
+
+                async searchCompanies() {
+                    this.loading = true;
+                    try {
+                        const params = new URLSearchParams();
+                        if (this.companySearch) params.append('q', this.companySearch);
+                        params.append('limit', 1000);
+                        const res = await fetch('/api/companies?' + params);
+                        this.results = await res.json();
+                    } catch (e) { console.error(e); }
+                    this.loading = false;
+                },
+
+                async matchResume() {
+                    if (!this.resumeFile) return;
+                    this.resumeMatching = true;
+                    this.resumeMatches = [];
+                    try {
+                        const formData = new FormData();
+                        formData.append('resume', this.resumeFile);
+                        if (this.resumeFilters.query) formData.append('query', this.resumeFilters.query);
+                        if (this.resumeFilters.company) formData.append('company', this.resumeFilters.company);
+                        if (this.resumeFilters.department) formData.append('department', this.resumeFilters.department);
+                        if (this.resumeFilters.seniority) formData.append('seniority', this.resumeFilters.seniority);
+                        formData.append('limit', 25);
+                        const res = await fetch('/api/search/resume-match-all', { method: 'POST', body: formData });
+                        if (!res.ok) {
+                            const err = await res.json();
+                            alert('Error: ' + (err.detail || 'Failed to analyze resume'));
+                            return;
+                        }
+                        const data = await res.json();
+                        this.resumeMatches = data.matches || [];
+                    } catch (e) {
+                        console.error(e);
+                        alert('Failed to analyze resume.');
+                    } finally {
+                        this.resumeMatching = false;
+                    }
+                },
+
+                clearFilters() {
+                    this.filters = { q: '', company: '', department: '', seniority: '', remote: '', tech: [] };
+                    this.searchJobs();
+                },
+
+                getCurrency(location) {
+                    if (!location) return '$';
+                    const loc = location.toLowerCase();
+                    if (loc.includes('uk') || loc.includes('london') || loc.includes('manchester') || loc.includes('edinburgh')) return '£';
+                    if (loc.includes('germany') || loc.includes('berlin') || loc.includes('france') || loc.includes('paris') || loc.includes('netherlands') || loc.includes('amsterdam') || loc.includes('ireland') || loc.includes('dublin') || loc.includes('spain') || loc.includes('italy')) return '€';
+                    if (loc.includes('canada') || loc.includes('toronto') || loc.includes('vancouver')) return 'C$';
+                    if (loc.includes('australia') || loc.includes('sydney') || loc.includes('melbourne')) return 'A$';
+                    if (loc.includes('japan') || loc.includes('tokyo')) return '¥';
+                    if (loc.includes('india') || loc.includes('bangalore') || loc.includes('mumbai')) return '₹';
+                    if (loc.includes('singapore')) return 'S$';
+                    if (loc.includes('switzerland') || loc.includes('zurich')) return 'CHF ';
+                    return '$';
+                },
+
+                formatSalary(min, max, location) {
+                    const currency = this.getCurrency(location);
+                    const fmt = n => n ? currency + n.toLocaleString() : null;
+                    if (min && max) return `${fmt(min)} - ${fmt(max)}`;
+                    if (min) return `${fmt(min)}+`;
+                    if (max) return `Up to ${fmt(max)}`;
+                    return '';
+                }
+            };
+        }
+    </script>
+</body>
+</html>
