@@ -1,0 +1,19 @@
+# Core
+requests>=2.31.0
+redis>=5.0.0
+rq>=1.15.0
+
+# Database
+psycopg2-binary>=2.9.9
+
+# API
+fastapi>=0.109.0
+uvicorn>=0.27.0
+pydantic>=2.5.0
+
+# HTML parsing (for job descriptions)
+beautifulsoup4>=4.12.0
+lxml>=5.1.0
+
+# Development
+python-dotenv>=1.0.0
